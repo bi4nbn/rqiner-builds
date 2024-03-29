@@ -1,73 +1,39 @@
-import subprocess
-from datetime import datetime
 import requests
+import subprocess
 import time
+import logging
 
-# 定义全局变量
-URL = 'https://pooltemp.qubic.solutions/info?miner='
+# 配置日志记录器
+logging.basicConfig(filename='/root/rqiner/run.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
-# 文件路径常量
-LOG_FILE_PATH = "/root/rqiner/run.log"
-SHELL_SCRIPT_PATH = "/root/rqiner_install_update.sh"
+# 定义变量
+miner_to_find = "HKK"
+url = 'https://pooltemp.qubic.solutions/info?miner=KFYHWZGKJDMBGHXLKWLQFPAGXLVCFRMTRDOWZRZBRDMHVBSTRZRIMVWARYSM&list=true'
 
-def log_message(*args):
-    """
-    这个函数会在控制台和日志文件同时打印信息，并且在信息前添加时间戳。
-    """
-    timestamp = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-    message = f"{timestamp} {' '.join(args)}"
-    print(message)  # 打印至控制台
-    
-    with open(LOG_FILE_PATH, "a") as log_file:  # 打印至日志文件
-        print(message, file=log_file)
-
-def is_miner_exist(miner_id):
-    """
-    这个函数会检查服务器上是否存在指定的矿工ID
-    """
-    response = requests.get(URL + miner_id + '&list=true')
-    return response.status_code == 200 and miner_id in response.text
-
-def run_shell_script():
-    """
-    创建并运行一个在后台工作的自Shell子进程
-    """
+# 循环执行
+while True:
     try:
-        subprocess.Popen(['bash', SHELL_SCRIPT_PATH])
-        log_message("Shell script started successfully.")
-        return True
-    except Exception as e:
-        log_message("Failed to start the shell script:", str(e))
-        return False
+        # 发送GET请求
+        response = requests.get(url)
 
-def get_id_from_script():
-    """
-    这个函数会从 Shell 脚本中获取 "ID=" 的值
-    """
-    try:
-        with open(SHELL_SCRIPT_PATH, 'r') as script_file:
-            for line in script_file:
-                if line.startswith('ID='):
-                    return line.split('=')[1].strip()
-    except Exception as e:
-        log_message("Failed to get the ID from the Shell script:", str(e))
-        return None
-
-def main():
-    miner_id = get_id_from_script()
-
-    while miner_id is None:
-        log_message("Failed to get the miner ID from the shell script. Trying again...")
-        miner_id = get_id_from_script()
-        time.sleep(60)
-
-    while True:
-        if is_miner_exist(miner_id):
-            log_message(f"Miner ID '{miner_id}' exists on the server.")
+        # 检查响应状态码
+        if response.status_code == 200:
+            # 检查变量是否在返回的内容中
+            if miner_to_find in response.content.decode('utf-8'):
+                print(f"找到'{miner_to_find}'")
+                logging.info(f"找到'{miner_to_find}'")
+            else:
+                print(f"未找到'{miner_to_find}'")
+                logging.info(f"未找到'{miner_to_find}'")
+                # 执行Shell命令并将输出重定向到/dev/null
+                subprocess.Popen(['sh', '/root/rqiner_install_update.sh'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
-            log_message(f"Miner ID '{miner_id}' does not exist on the server.Tempting to run the shell script...")
-            run_shell_script()
-        time.sleep(60)
+            print("请求失败，状态码：", response.status_code)
+            logging.error(f"请求失败，状态码：{response.status_code}")
 
-if __name__ == "__main__":
-    main()
+    except Exception as e:
+        print("发生异常:", str(e))
+        logging.error(f"发生异常: {str(e)}")
+
+    # 等待30秒
+    time.sleep(30)
