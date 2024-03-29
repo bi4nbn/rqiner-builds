@@ -38,5 +38,5 @@ while True:
         print("发生异常:", str(e))
         logging.error(f"发生异常: {str(e)}")
 
-    # 等待60秒
-    time.sleep(600)
+    # 等待300秒
+    time.sleep(300)
