@@ -18,8 +18,8 @@ while True:
 
         # 检查响应状态码
         if response.status_code == 200:
-            # 检查变量是否在返回的内容中
-            if miner_to_find in response.content.decode('utf-8'):
+            # 检查变量是否在返回的内容中（忽略大小写）
+            if miner_to_find.lower() in response.content.decode('utf-8').lower():
                 print(f"找到'{miner_to_find}'")
                 logging.info(f"找到'{miner_to_find}'")
             else:
