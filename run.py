@@ -4,12 +4,11 @@ import requests
 import time
 
 # 定义全局变量
-URL = 'https://pooltemp.qubic.solutions/info?miner=KFYHWZGKJDMBGHXLKWLQFPAGXLVCFRMTRDOWZRZBRDMHVBSTRZRIMVWARYSM&list=true'
+URL = 'https://pooltemp.qubic.solutions/info?miner='
 
 # 文件路径常量
 LOG_FILE_PATH = "/root/rqiner/run.log"
 SHELL_SCRIPT_PATH = "/root/rqiner_install_update.sh"
-LABEL = ''
 
 def log_message(*args):
     """
@@ -22,14 +21,17 @@ def log_message(*args):
     with open(LOG_FILE_PATH, "a") as log_file:  # 打印至日志文件
         print(message, file=log_file)
 
-def is_label_exist(label):  # 更具表达性的函数名
+def is_miner_exist(miner_id):
     """
-    这个函数会检查服务器上是否存在指定的标签
+    这个函数会检查服务器上是否存在指定的矿工ID
     """
-    response = requests.get(URL + label)
-    return response.status_code == 200 and label in response.text
+    response = requests.get(URL + miner_id + '&list=true')
+    return response.status_code == 200 and miner_id in response.text
 
-def run_shell_script():  # 抽象出运行脚本的函数
+def run_shell_script():
+    """
+    创建并运行一个在后台工作的自Shell子进程
+    """
     try:
         subprocess.Popen(['bash', SHELL_SCRIPT_PATH])
         log_message("Shell script started successfully.")
@@ -38,36 +40,34 @@ def run_shell_script():  # 抽象出运行脚本的函数
         log_message("Failed to start the shell script:", str(e))
         return False
 
-def get_label_from_script():
+def get_id_from_script():
     """
-    这个函数会从 Shell 脚本中获取 "LABEL_AND_SCREEN_NAME" 的值。
+    这个函数会从 Shell 脚本中获取 "ID=" 的值
     """
     try:
         with open(SHELL_SCRIPT_PATH, 'r') as script_file:
             for line in script_file:
-                if line.startswith('LABEL_AND_SCREEN_NAME='):
+                if line.startswith('ID='):
                     return line.split('=')[1].strip()
     except Exception as e:
-        log_message("Failed to get the label from the shell script:", str(e))
+        log_message("Failed to get the ID from the Shell script:", str(e))
         return None
 
 def main():
-    global LABEL
-    LABEL = get_label_from_script()  # 从脚本中获取标签
+    miner_id = get_id_from_script()
 
-    while LABEL is None:
-        log_message("Failed to get the label from the shell script. Trying again...")
-        LABEL = get_label_from_script()
-        time.sleep(60)  # 如果获取标签失败，则每60秒重试一次
+    while miner_id is None:
+        log_message("Failed to get the miner ID from the shell script. Trying again...")
+        miner_id = get_id_from_script()
+        time.sleep(60)
 
     while True:
-        if is_label_exist(LABEL):
-            log_message(f"Label '{LABEL}' exists on the server.")
+        if is_miner_exist(miner_id):
+            log_message(f"Miner ID '{miner_id}' exists on the server.")
         else:
-            log_message(f"Label '{LABEL}' does not exist on the server.")
-            log_message("Attempting to run the shell script...")
+            log_message(f"Miner ID '{miner_id}' does not exist on the server.Tempting to run the shell script...")
             run_shell_script()
-        time.sleep(60)  # 每60秒检查一次
+        time.sleep(60)
 
 if __name__ == "__main__":
     main()
