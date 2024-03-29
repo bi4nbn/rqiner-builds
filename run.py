@@ -7,7 +7,7 @@ import logging
 logging.basicConfig(filename='/root/rqiner/run.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
 # 定义变量
-miner_to_find = "HKK"
+miner_to_find = "test"
 url = 'https://pooltemp.qubic.solutions/info?miner=KFYHWZGKJDMBGHXLKWLQFPAGXLVCFRMTRDOWZRZBRDMHVBSTRZRIMVWARYSM&list=true'
 
 # 循环执行
@@ -30,10 +30,13 @@ while True:
         else:
             print("请求失败，状态码：", response.status_code)
             logging.error(f"请求失败，状态码：{response.status_code}")
+            # 如果请求失败，等待60秒后重试
+            time.sleep(60)
+            continue  # 继续下一次循环
 
     except Exception as e:
         print("发生异常:", str(e))
         logging.error(f"发生异常: {str(e)}")
 
-    # 等待30秒
-    time.sleep(30)
+    # 等待60秒
+    time.sleep(600)
