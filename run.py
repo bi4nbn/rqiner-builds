@@ -31,12 +31,12 @@ while True:
             print("请求失败，状态码：", response.status_code)
             logging.error(f"请求失败，状态码：{response.status_code}")
             # 如果请求失败，等待60秒后重试
-            time.sleep(60)
+            time.sleep(120)
             continue  # 继续下一次循环
 
     except Exception as e:
         print("发生异常:", str(e))
         logging.error(f"发生异常: {str(e)}")
 
-    # 等待300秒
-    time.sleep(300)
+    # 等待600秒
+    time.sleep(600)
