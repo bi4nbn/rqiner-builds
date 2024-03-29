@@ -12,13 +12,13 @@ def translate_json(content, translated_content):
     return translated_data
 
 def print_info(info):
-    print(f"\n纪元: {info['纪元']}")
+    print(f"\n战役代号: {info['战役代号']}")
     print(f"全体战斗力: {info['全体战斗力']: .0f}")  # 更改为‘全体战斗力’
     print(f"战士数量: {info['战士数量']}")
-    print(f"战绩: {info['战绩']}")
+    print(f"斩敌数量: {info['斩敌数量']}")
 
     for item in info['战士列表']:
-        print(f"\n战士信息: 战士姓名: {item['战士姓名']}, 战斗力: {item['战斗力']: .0f}, 战绩: {item['战绩']}")
+        print(f"\n战士信息: 战士姓名: {item['战士姓名']}, 战斗力: {item['战斗力']: .0f}, 斩敌数量: {item['斩敌数量']}")
 
 def get_wallet_info(wallet_id):
     # 构建URL
@@ -38,10 +38,10 @@ def get_wallet_info(wallet_id):
     content = response.json()
     # 定义字段名称翻译
     translated_content = {
-        "epoch": "纪元",
+        "epoch": "战役代号",
         "iterrate": "全体战斗力",  # 更改为‘全体战斗力’
         "devices": "战士数量",
-        "solutions": "战绩",
+        "solutions": "斩敌数量",
         "device_list": "战士列表",
         "label": "战士姓名",
         "last_iterrate": "战斗力"
